@@ -23,40 +23,6 @@ fn set_first_player(rng: &mut ThreadRng, current_player: &mut char) {
     }
 }
 
-/*
-fn is_game_finished(state: &[[char; 3]; 3]) -> bool {
-    // let mut finished = false;
-    // rows
-    for row in state {
-        let row_str: String = row.iter().collect();
-        // println!("row {:?} -> '{}'", row, row_str);
-        if row_str == "⚫⚫⚫" || row_str == "🔴🔴🔴" {
-            return true;
-        }
-    }
-    // cols
-    for col_num in 0..3 {
-        let col_str: String = format!("{}{}{}", state[0][col_num], state[1][col_num], state[2][col_num]);
-        // println!("col '{}'", col_str);
-        if col_str == "⚫⚫⚫" || col_str == "🔴🔴🔴" {
-            return true;
-        }
-    }
-    // diagonals
-    let left_diagonal_str = format!("{}{}{}", state[0][0], state[1][1], state[2][2]);
-    // println!("{}", left_diagonal_str);
-    if left_diagonal_str == "⚫⚫⚫" || left_diagonal_str == "🔴🔴🔴" {
-        return true;
-    }
-    let right_diagonal_str = format!("{}{}{}", state[0][2], state[1][1], state[2][0]);
-    // println!("{}", right_diagonal_str);
-    if right_diagonal_str == "⚫⚫⚫" || right_diagonal_str == "🔴🔴🔴" {
-        return true;
-    }
-    return false;
-}
-*/
-
 fn get_winner_by_str(s: String) -> WinState {
     if s == format!("{x}{x}{x}", x = P1) {
         return WinState::PLAYER1;
