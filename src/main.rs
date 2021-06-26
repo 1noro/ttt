@@ -1,8 +1,8 @@
 use std::io;
 use std::cmp;
 
-use std::{thread, time};
-use std::time::Duration;
+// use std::{thread, time};
+// use std::time::Duration;
 
 use rand::Rng;
 use rand::rngs::ThreadRng;
@@ -19,7 +19,7 @@ enum WinState { PLAYER1, PLAYER2, TIE, CONTINUE }
 static P1: char = '⚫';
 static P2: char = '🔴';
 
-static ONE_SEC: Duration = time::Duration::from_millis(1000);
+// static ONE_SEC: Duration = time::Duration::from_millis(1000);
 
 // ----------------------------------------------------------------------------
 fn set_first_player(rng: &mut ThreadRng, current_player: &mut char) {
@@ -134,44 +134,56 @@ fn get_opponent(current_player: &char) -> char {
     return P1;
 }
 
-fn win_state_translate(win_state: WinState, current_player: &char) -> i8 {
+fn win_state_translate(win_state: WinState, current_player: &char, depth: i16) -> i16 {
     if (win_state == WinState::PLAYER1 && *current_player == P1) || (win_state == WinState::PLAYER2 && *current_player == P2) {
-        return 1;
+        return 10 - depth;
     } else if (win_state == WinState::PLAYER1 && *current_player == P2) || (win_state == WinState::PLAYER2 && *current_player == P1) {
-        return -1;
+        return -10 - depth;
     }
     return 0;
 }
 
-fn minimax(state: &mut [[char; 3]; 3], depth: i32, is_maximizing: bool, current_player: &char) -> i8 {
+fn minimax(state: &mut [[char; 3]; 3], depth: i16, is_maximizing: bool, current_player: &char) -> i16 {
     let winner = get_winner(state);
     if winner != WinState::CONTINUE {
-        return win_state_translate(winner, current_player);
+        return win_state_translate(winner, current_player, depth);
     }
 
     if is_maximizing {
-        let mut best_score = i8::MIN;
+        let mut best_score = i16::MIN;
         for r in 0..state.len() {
             for c in 0..state[r].len() {
                 if state[r][c] == '⬜' {
                     state[r][c] = *current_player;
-                    let score = minimax(state, depth + 1, false, current_player);
+                    let new_score = minimax(state, depth + 1, false, current_player);
+                    
+                    // println!("-----------------------------------------------");
+                    // print_board(&state);
+                    // println!("depth: {}, is_maximizing: {}, current_player: {}", depth, is_maximizing, *current_player);
+                    // println!("new_score: {}, best_score: {}", new_score, best_score);
+                    
                     state[r][c] = '⬜';
-                    best_score = cmp::max(score, best_score);
+                    best_score = cmp::max(new_score, best_score);
                 }
             }
         }
         return best_score;
     } else {
         let opponent_player = get_opponent(current_player);
-        let mut best_score = i8::MAX;
+        let mut best_score = i16::MAX;
         for r in 0..state.len() {
             for c in 0..state[r].len() {
                 if state[r][c] == '⬜' {
                     state[r][c] = opponent_player;
-                    let score = minimax(state, depth + 1, true, current_player);
+                    let new_score = minimax(state, depth + 1, true, current_player);
+
+                    // println!("-----------------------------------------------");
+                    // print_board(&state);
+                    // println!("depth: {}, is_maximizing: {}, current_player: {}", depth, is_maximizing, *current_player);
+                    // println!("new_score: {}, best_score: {}", new_score, best_score);
+                    
                     state[r][c] = '⬜';
-                    best_score = cmp::min(score, best_score);
+                    best_score = cmp::min(new_score, best_score);
                 }
             }
         }
@@ -181,15 +193,15 @@ fn minimax(state: &mut [[char; 3]; 3], depth: i32, is_maximizing: bool, current_
 
 fn get_next_ia_position(state: &mut [[char; 3]; 3], current_player: &char) -> Point {
     let mut next_position = Point { row: 0, col: 0 };
-    let mut best_score = i8::MIN;
+    let mut best_score = i16::MIN;
     for r in 0..state.len() {
         for c in 0..state[r].len() {
             if state[r][c] == '⬜' {
                 state[r][c] = *current_player;
-                let score = minimax(state, 0, true, current_player);
+                let new_score = minimax(state, 0, true, current_player);
                 state[r][c] = '⬜';
-                if score > best_score {
-                    best_score = score;
+                if new_score > best_score {
+                    best_score = new_score;
                     next_position = Point { row: r, col: c };
                 }
             }
@@ -199,13 +211,13 @@ fn get_next_ia_position(state: &mut [[char; 3]; 3], current_player: &char) -> Po
 }
 
 // ----------------------------------------------------------------------------
-fn game_loop(current_player: &mut char, state: &mut [[char; 3]; 3], ia_num: &i8) {
+fn game_loop(current_player: &mut char, state: &mut [[char; 3]; 3], ia_num: &i16) {
     while get_winner(&state) == WinState::CONTINUE {
         print!("\x1B[2J\x1B[1;1H"); // clear screen
         print_board(&state);
         let mut position;
         if (*ia_num == 1 && *current_player == P2) || *ia_num == 2 {
-            thread::sleep(ONE_SEC);
+            // thread::sleep(ONE_SEC);
             position = get_next_ia_position(state, current_player);
         } else {
             println!("\nNext position {}", current_player);
@@ -236,7 +248,7 @@ fn main() {
     // setup
     let mut rng = rand::thread_rng();
     let mut state = [['⬜'; 3]; 3];
-    let ia_num: i8 = 1;
+    let ia_num: i16 = 2;
     let mut current_player = P1;
     set_first_player(&mut rng, &mut current_player);
 
