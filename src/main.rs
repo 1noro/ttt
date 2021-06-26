@@ -23,6 +23,7 @@ fn set_first_player(rng: &mut ThreadRng, current_player: &mut char) {
     }
 }
 
+/*
 fn is_game_finished(state: &[[char; 3]; 3]) -> bool {
     // let mut finished = false;
     // rows
@@ -54,6 +55,7 @@ fn is_game_finished(state: &[[char; 3]; 3]) -> bool {
     }
     return false;
 }
+*/
 
 fn get_winner_by_str(s: String) -> WinState {
     if s == format!("{x}{x}{x}", x = P1) {
@@ -152,11 +154,10 @@ fn change_player(current_player: &mut char) {
 
 // ----------------------------------------------------------------------------
 fn game_loop(current_player: &mut char, state: &mut [[char; 3]; 3]) {
-    let mut limit: i16 = 9;
-    while !is_game_finished(&state) {
+    while get_winner(&state) == WinState::CONTINUE {
         print!("\x1B[2J\x1B[1;1H"); // clear screen
         print_board(&state);
-        println!("winner: {:?}", get_winner(&state));
+        // println!("winner: {:?}", get_winner(&state));
         println!("\nNext position {}", current_player);
         let mut position = get_next_position();
         while !is_legal_movement(&state, &position) {
@@ -166,19 +167,16 @@ fn game_loop(current_player: &mut char, state: &mut [[char; 3]; 3]) {
         state[position.row][position.col] = *current_player;
         println!("{} to row: {}, col: {}", current_player, position.row + 1, position.col + 1);
         change_player(current_player);
-        limit -= 1;
-        if limit < 1 {
-            break;
-        }
     }
 
     // end
     print!("\x1B[2J\x1B[1;1H"); // clear screen
     print_board(&state);
-    println!("winner: {:?}", get_winner(&state));
-    if limit >= 0 && is_game_finished(&state) {
-        change_player(current_player);
-        println!("\nGAME OVER\n{} WINS\n", current_player);
+    // println!("winner: {:?}", get_winner(&state));
+    if get_winner(&state) == WinState::PLAYER1 {
+        println!("\nGAME OVER\n{} WINS\n", P1);
+    } else if get_winner(&state) == WinState::PLAYER2 {
+        println!("\nGAME OVER\n{} WINS\n", P2);
     } else {
         println!("\nGAME OVER\nNOBODY WINS\n");
     }
