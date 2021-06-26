@@ -198,7 +198,7 @@ fn get_next_ia_position(state: &mut [[char; 3]; 3], current_player: &char) -> Po
         for c in 0..state[r].len() {
             if state[r][c] == '⬜' {
                 state[r][c] = *current_player;
-                let new_score = minimax(state, 0, true, current_player);
+                let new_score = minimax(state, 0, false, current_player);
                 state[r][c] = '⬜';
                 if new_score > best_score {
                     best_score = new_score;
@@ -248,7 +248,7 @@ fn main() {
     // setup
     let mut rng = rand::thread_rng();
     let mut state = [['⬜'; 3]; 3];
-    let ia_num: i16 = 2;
+    let ia_num: i16 = 1;
     let mut current_player = P1;
     set_first_player(&mut rng, &mut current_player);
 
