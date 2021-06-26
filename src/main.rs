@@ -1,8 +1,8 @@
 use std::io;
 use std::cmp;
 
-// use std::{thread, time};
-// use std::time::Duration;
+use std::{thread, time};
+use std::time::Duration;
 
 use rand::Rng;
 use rand::rngs::ThreadRng;
@@ -19,7 +19,7 @@ enum WinState { PLAYER1, PLAYER2, TIE, CONTINUE }
 static P1: char = '⚫';
 static P2: char = '🔴';
 
-// static ONE_SEC: Duration = time::Duration::from_millis(1000);
+static ONE_SEC: Duration = time::Duration::from_millis(1000);
 
 // ----------------------------------------------------------------------------
 fn set_first_player(rng: &mut ThreadRng, current_player: &mut char) {
@@ -156,12 +156,6 @@ fn minimax(state: &mut [[char; 3]; 3], depth: i16, is_maximizing: bool, current_
                 if state[r][c] == '⬜' {
                     state[r][c] = *current_player;
                     let new_score = minimax(state, depth + 1, false, current_player);
-                    
-                    // println!("-----------------------------------------------");
-                    // print_board(&state);
-                    // println!("depth: {}, is_maximizing: {}, current_player: {}", depth, is_maximizing, *current_player);
-                    // println!("new_score: {}, best_score: {}", new_score, best_score);
-                    
                     state[r][c] = '⬜';
                     best_score = cmp::max(new_score, best_score);
                 }
@@ -176,12 +170,6 @@ fn minimax(state: &mut [[char; 3]; 3], depth: i16, is_maximizing: bool, current_
                 if state[r][c] == '⬜' {
                     state[r][c] = opponent_player;
                     let new_score = minimax(state, depth + 1, true, current_player);
-
-                    // println!("-----------------------------------------------");
-                    // print_board(&state);
-                    // println!("depth: {}, is_maximizing: {}, current_player: {}", depth, is_maximizing, *current_player);
-                    // println!("new_score: {}, best_score: {}", new_score, best_score);
-                    
                     state[r][c] = '⬜';
                     best_score = cmp::min(new_score, best_score);
                 }
@@ -217,7 +205,7 @@ fn game_loop(current_player: &mut char, state: &mut [[char; 3]; 3], ia_num: &i16
         print_board(&state);
         let mut position;
         if (*ia_num == 1 && *current_player == P2) || *ia_num == 2 {
-            // thread::sleep(ONE_SEC);
+            thread::sleep(ONE_SEC);
             position = get_next_ia_position(state, current_player);
         } else {
             println!("\nNext position {}", current_player);
@@ -248,7 +236,7 @@ fn main() {
     // setup
     let mut rng = rand::thread_rng();
     let mut state = [['⬜'; 3]; 3];
-    let ia_num: i16 = 1;
+    let ia_num: i16 = 2;
     let mut current_player = P1;
     set_first_player(&mut rng, &mut current_player);
 
