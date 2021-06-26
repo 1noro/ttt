@@ -1,6 +1,10 @@
 use std::io;
+
 use rand::Rng;
 use rand::rngs::ThreadRng;
+
+use std::{thread, time};
+use std::time::Duration;
 
 // ----------------------------------------------------------------------------
 struct Point {
@@ -13,6 +17,8 @@ enum WinState { PLAYER1, PLAYER2, TIE, CONTINUE }
 
 static P1: char = '⚫';
 static P2: char = '🔴';
+
+static ONE_SEC: Duration = time::Duration::from_millis(1000);
 
 // ----------------------------------------------------------------------------
 fn set_first_player(rng: &mut ThreadRng, current_player: &mut char) {
@@ -118,27 +124,42 @@ fn change_player(current_player: &mut char) {
     }
 }
 
+fn get_next_ia_position(state: &[[char; 3]; 3]) -> Point {
+    for r in 0..state.len() {
+        for c in 0..state[r].len() {
+            if state[r][c] == '⬜' {
+                return Point { row: r, col: c };
+            }
+        }
+    }
+    return Point { row: 0, col: 0 };
+}
+
 // ----------------------------------------------------------------------------
-fn game_loop(current_player: &mut char, state: &mut [[char; 3]; 3]) {
+fn game_loop(current_player: &mut char, state: &mut [[char; 3]; 3], ia_num: &i8) {
     while get_winner(&state) == WinState::CONTINUE {
         print!("\x1B[2J\x1B[1;1H"); // clear screen
         print_board(&state);
-        // println!("winner: {:?}", get_winner(&state));
-        println!("\nNext position {}", current_player);
-        let mut position = get_next_position();
-        while !is_legal_movement(&state, &position) {
-            eprintln!("Not allowed!");
+        let mut position;
+        if (*ia_num == 1 && *current_player == P2) || *ia_num == 2 {
+            thread::sleep(ONE_SEC);
+            position = get_next_ia_position(&state);
+        } else {
+            println!("\nNext position {}", current_player);
             position = get_next_position();
+            while !is_legal_movement(&state, &position) {
+                eprintln!("Not allowed!");
+                position = get_next_position();
+            }
         }
         state[position.row][position.col] = *current_player;
-        println!("{} to row: {}, col: {}", current_player, position.row + 1, position.col + 1);
+        // println!("{} to row: {}, col: {}", current_player, position.row + 1, position.col + 1);
         change_player(current_player);
     }
 
     // end
     print!("\x1B[2J\x1B[1;1H"); // clear screen
     print_board(&state);
-    // println!("winner: {:?}", get_winner(&state));
     if get_winner(&state) == WinState::PLAYER1 {
         println!("\nGAME OVER\n{} WINS\n", P1);
     } else if get_winner(&state) == WinState::PLAYER2 {
@@ -152,9 +173,10 @@ fn main() {
     // setup
     let mut rng = rand::thread_rng();
     let mut state = [['⬜'; 3]; 3];
+    let ia_num: i8 = 2;
     let mut current_player = P1;
     set_first_player(&mut rng, &mut current_player);
 
     // game
-    game_loop(&mut current_player, &mut state);
+    game_loop(&mut current_player, &mut state, &ia_num);
 }
