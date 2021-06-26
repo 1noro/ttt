@@ -8,6 +8,9 @@ struct Point {
     col: usize
 }
 
+#[derive(Debug, PartialEq)]
+enum WinState { PLAYER1, PLAYER2, TIE, CONTINUE }
+
 static P1: char = '⚫';
 static P2: char = '🔴';
 
@@ -52,38 +55,58 @@ fn is_game_finished(state: &[[char; 3]; 3]) -> bool {
     return false;
 }
 
-/*
-fn get_winner(state: &[[char; 3]; 3]) -> i8 {
+fn get_winner_by_str(s: String) -> WinState {
+    if s == format!("{x}{x}{x}", x = P1) {
+        return WinState::PLAYER1;
+    } else if s == format!("{x}{x}{x}", x = P2) {
+        return WinState::PLAYER2;
+    }
+    return WinState::CONTINUE;
+}
+
+fn get_winner(state: &[[char; 3]; 3]) -> WinState {
     // rows
     for row in state {
         let row_str: String = row.iter().collect();
-        if row_str == "⚫⚫⚫" {
-            return true;
-        } else if row_str == "🔴🔴🔴" {
-
+        let winner = get_winner_by_str(row_str);
+        if winner != WinState::CONTINUE {
+            return winner;
         }
     }
     // cols
     for col_num in 0..3 {
         let col_str: String = format!("{}{}{}", state[0][col_num], state[1][col_num], state[2][col_num]);
-        // println!("col '{}'", col_str);
-        if col_str == "⚫⚫⚫" || col_str == "🔴🔴🔴" {
-            return true;
+        let winner = get_winner_by_str(col_str);
+        if winner != WinState::CONTINUE {
+            return winner;
         }
     }
     // diagonals
     let left_diagonal_str = format!("{}{}{}", state[0][0], state[1][1], state[2][2]);
-    // println!("{}", left_diagonal_str);
-    if left_diagonal_str == "⚫⚫⚫" || left_diagonal_str == "🔴🔴🔴" {
-        return true;
+    let winner = get_winner_by_str(left_diagonal_str);
+    if winner != WinState::CONTINUE {
+        return winner;
     }
     let right_diagonal_str = format!("{}{}{}", state[0][2], state[1][1], state[2][0]);
-    // println!("{}", right_diagonal_str);
-    if right_diagonal_str == "⚫⚫⚫" || right_diagonal_str == "🔴🔴🔴" {
-        return true;
+    let winner = get_winner_by_str(right_diagonal_str);
+    if winner != WinState::CONTINUE {
+        return winner;
     }
+    // check open spots
+    let mut open_spots = 0;
+    for row in state {
+        for col in row {
+            if *col == '⬜' {
+                open_spots += 1;
+            }
+        }
+    }
+    if open_spots == 0 {
+        return WinState::TIE;
+    }
+    // continue
+    return WinState::CONTINUE;
 }
-*/
 
 fn print_board(state: &[[char; 3]; 3]) {
     println!("⬛1️⃣ 2️⃣ 3️⃣ ⬛");
@@ -133,6 +156,7 @@ fn game_loop(current_player: &mut char, state: &mut [[char; 3]; 3]) {
     while !is_game_finished(&state) {
         print!("\x1B[2J\x1B[1;1H"); // clear screen
         print_board(&state);
+        println!("winner: {:?}", get_winner(&state));
         println!("\nNext position {}", current_player);
         let mut position = get_next_position();
         while !is_legal_movement(&state, &position) {
@@ -151,6 +175,7 @@ fn game_loop(current_player: &mut char, state: &mut [[char; 3]; 3]) {
     // end
     print!("\x1B[2J\x1B[1;1H"); // clear screen
     print_board(&state);
+    println!("winner: {:?}", get_winner(&state));
     if limit >= 0 && is_game_finished(&state) {
         change_player(current_player);
         println!("\nGAME OVER\n{} WINS\n", current_player);
