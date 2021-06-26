@@ -8,7 +8,7 @@ struct Point {
     col: usize
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq)] // para que se pueda imprimir y comparar
 enum WinState { PLAYER1, PLAYER2, TIE, CONTINUE }
 
 static P1: char = '⚫';
